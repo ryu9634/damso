@@ -1,0 +1,43 @@
+### 운영 프로파일 (VPS + PostgreSQL).
+### 비밀번호/키는 이 파일에 적지 않는다. 서버의 /etc/damso/damso.env (권한 600) 에서 환경변수로 주입된다.
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:127.0.0.1}:${DB_PORT:5432}/${DB_NAME:damso}
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 10
+
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
+
+  # 운영에서 H2 콘솔은 절대 열지 않는다. (인증 없이 DB 전체가 노출된다)
+  h2:
+    console:
+      enabled: false
+
+damso:
+  # 개인정보 암호화 키. DAMSO_DATA_KEY 환경변수가 없으면 이 파일을 쓴다(없으면 만든다).
+  # /opt/damso 는 배포 때 통째로 바뀌므로 반드시 그 바깥에 둔다. 잃으면 개인정보를 못 읽는다.
+  data-key-file: /var/lib/damso/damso.key
+  # jar 하나가 프론트와 API 를 같은 오리진에서 서빙하므로 CORS 가 필요 없다.
+  # 외부 도메인에서 API 를 호출해야 할 일이 생기면 여기에 명시적으로 추가한다.
+  cors:
+    allowed-origin-patterns: ""
+  # 운영에는 테스트 계정(test/test1234)을 만들지 않는다.
+  seed-test-user: false
+
+server:
+  # nginx 뒤에 있으므로 X-Forwarded-* 를 신뢰해 원래 스킴(https)/호스트를 인식한다.
+  forward-headers-strategy: framework
+  shutdown: graceful
+
+logging:
+  level:
+    root: INFO
+    com.damso.match: INFO
+    org.hibernate.SQL: WARN

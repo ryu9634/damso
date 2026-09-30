@@ -1,0 +1,34 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.swp
+
+# Java / Maven build output
+target/
+*.class
+
+# Node / Vite
+node_modules/
+dist/
+.vite/
+tsconfig.tsbuildinfo
+
+# 포터블 번들 도구 (저장소에 포함하지 않음 - setup_portable.bat로 내려받음)
+jdk-21.0.2/
+apache-maven-3.9.6/
+tools/
+
+# 로컬 데이터 / 로그
+data/
+logs/
+uploads/
+*.log
+
+# 환경 변수
+.env
+.env.local

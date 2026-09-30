@@ -1,0 +1,41 @@
+[Unit]
+Description=담소 매칭 시스템
+Documentation=https://github.com/ryu9634/damso
+After=network-online.target postgresql.service
+Wants=network-online.target
+Requires=postgresql.service
+
+[Service]
+Type=simple
+User=damso
+Group=damso
+EnvironmentFile=/etc/damso/damso.env
+
+# current 는 릴리스 디렉터리를 가리키는 심볼릭 링크다. 배포는 이 링크를 바꾸고 restart 하는 것이 전부이며,
+# 롤백도 링크를 되돌리는 것으로 끝난다. exec 시점에 링크가 해석되므로 재시작만 하면 새 버전이 뜬다.
+WorkingDirectory=/opt/damso/current
+ExecStart=/bin/sh -c '/usr/bin/java $JAVA_OPTS -jar /opt/damso/current/match.jar --spring.profiles.active=prod'
+
+Restart=always
+RestartSec=5
+# graceful shutdown(application-prod.yml) 이 끝날 시간을 준다.
+TimeoutStopSec=30
+SuccessExitStatus=143
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=damso
+
+# ── 권한 최소화 ───────────────────────────────────────────
+# 앱이 쓸 수 있어야 하는 곳은 업로드 디렉터리뿐이다. 나머지 파일시스템은 읽기 전용으로 잠근다.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+ReadWritePaths=/var/lib/damso
+
+[Install]
+WantedBy=multi-user.target

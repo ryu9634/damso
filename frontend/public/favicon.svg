@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="담소혼술바">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0" stop-color="#f78f3e"/>
+      <stop offset="1" stop-color="#d65514"/>
+    </linearGradient>
+    <!-- 오른쪽 원보다 20px 큰 원을 뚫어, 두 원 사이에 배경색 틈을 만든다.
+         작은 크기에서도 "둘"로 읽히게 하는 장치다. -->
+    <mask id="gap">
+      <rect width="512" height="512" fill="#fff"/>
+      <circle cx="322" cy="256" r="130" fill="#000"/>
+    </mask>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
+  <circle cx="190" cy="256" r="110" fill="#fff" mask="url(#gap)"/>
+  <circle cx="322" cy="256" r="110" fill="#fff"/>
+</svg>
