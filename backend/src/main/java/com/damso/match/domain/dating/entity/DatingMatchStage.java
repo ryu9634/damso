@@ -18,10 +18,4 @@ public enum DatingMatchStage {
 
     public static DatingMatchStage orDefault(DatingMatchStage s) {
         return s == null ? NEW : s;
-    }
-
-    /** 더 이상 진행하지 않는 종료 단계인지. */
-    public boolean isClosed() {
-        return this == SUCCESS || this == FAILED;
-    }
-}
+    }}

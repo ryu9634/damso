@@ -838,23 +838,6 @@ public class DatingService {
         pairNoteRepo.save(note);
     }
 
-    /** 현재 쌍방 찜인 페어 (정규화된 [작은 id, 큰 id]). */
-    @Transactional(readOnly = true)
-    public Set<List<Long>> mutualPairs() {
-        Set<String> edges = new HashSet<>();
-        List<DatingLike> likes = likeRepo.findAll();
-        for (DatingLike l : likes) edges.add(l.getFromProfileId() + ">" + l.getToProfileId());
-
-        Set<List<Long>> pairs = new LinkedHashSet<>();
-        for (DatingLike l : likes) {
-            if (!edges.contains(l.getToProfileId() + ">" + l.getFromProfileId())) continue;
-            long a = Math.min(l.getFromProfileId(), l.getToProfileId());
-            long b = Math.max(l.getFromProfileId(), l.getToProfileId());
-            pairs.add(List.of(a, b));
-        }
-        return pairs;
-    }
-
     // ─── 본인 수정 ──────────────────────────────────────
     /** 본인이 작성한 정보(기본 정보 + 설문 + 사진) 수정. 성별은 바꿀 수 없다. */
     @Transactional

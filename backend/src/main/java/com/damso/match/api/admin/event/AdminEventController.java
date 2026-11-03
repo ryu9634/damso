@@ -27,16 +27,6 @@ public class AdminEventController {
         return eventService.getOrCreateCurrent();
     }
 
-    @GetMapping("/{id}")
-    public Event get(@PathVariable Long id) {
-        return eventService.get(id);
-    }
-
-    @PostMapping
-    public Event create(@RequestBody Map<String, String> body) {
-        return eventService.create(body.getOrDefault("name", "담소혼술바 매칭 이벤트"));
-    }
-
     @PostMapping("/start-new")
     public Event startNew(@RequestBody Map<String, String> body) {
         return eventService.startNew(body == null ? null : body.get("name"));

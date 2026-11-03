@@ -149,19 +149,6 @@ export interface ValueQuestion {
   optionB: string;
 }
 
-export interface GuestSeatPartner {
-  customerId: number;
-  nickname: string;
-  mbti: string;
-  gender: Gender;
-}
-
-export interface GuestSeat {
-  assigned: boolean;
-  seatNumber: number | null;
-  partners: GuestSeatPartner[];
-}
-
 export interface GuestSeatView {
   seatNumber: number;
   slotIndex: number;
@@ -250,13 +237,6 @@ export interface DatingProfileCard {
 
 /** 받은 좋아요에 대한 답. */
 export type DatingLikeStatus = 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'EXPIRED';
-
-export const LIKE_STATUS_LABEL: Record<DatingLikeStatus, string> = {
-  PENDING: '답변 대기',
-  ACCEPTED: '좋아요',
-  DECLINED: '미안해요',
-  EXPIRED: '기간 만료',
-};
 
 /** 서로 좋아요가 된 두 사람의 만남 약속. */
 /** 만날 날짜와 시각 한 벌. */
@@ -407,12 +387,6 @@ export interface DatingLikeRow {
 /** 만남 약속 상태. */
 export type MeetingStatus = 'NONE' | 'PROPOSED' | 'CONFIRMED';
 
-export const MEETING_STATUS_LABEL: Record<MeetingStatus, string> = {
-  NONE: '미정',
-  PROPOSED: '상대 확인 대기',
-  CONFIRMED: '확정',
-};
-
 /** 페어(두 회원) 메모 + 데이트 약속. 약속 캘린더에서 쓴다. */
 export interface DatingPairNote {
   id: number;
@@ -439,54 +413,6 @@ export function formatHour(hour: number): string {
   return `${String(hour).padStart(2, '0')}:00`;
 }
 
-/** 매칭 페어 진행 단계. */
-export type DatingMatchStage =
-  | 'NEW'
-  | 'CONTACT_SHARED'
-  | 'MEETING_SET'
-  | 'SUCCESS'
-  | 'FAILED';
-
-export const DATING_STAGE_ORDER: DatingMatchStage[] = [
-  'NEW', 'CONTACT_SHARED', 'MEETING_SET', 'SUCCESS', 'FAILED',
-];
-
-export const DATING_STAGE_LABEL: Record<DatingMatchStage, string> = {
-  NEW: '쌍방 발생',
-  CONTACT_SHARED: '연락처 전달',
-  MEETING_SET: '만남 확정',
-  SUCCESS: '성사',
-  FAILED: '불발',
-};
-
-export const DATING_STAGE_STYLE: Record<DatingMatchStage, string> = {
-  NEW: 'border-amber-300 bg-amber-50',
-  CONTACT_SHARED: 'border-sky-300 bg-sky-50',
-  MEETING_SET: 'border-violet-300 bg-violet-50',
-  SUCCESS: 'border-emerald-300 bg-emerald-50',
-  FAILED: 'border-stone-300 bg-stone-50',
-};
-
-/** 관리자 매칭 보드 카드. */
-export interface DatingMatch {
-  id: number;
-  aId: number;
-  aName: string;
-  aContact: string;
-  aBirthYear: number;
-  bId: number;
-  bName: string;
-  bContact: string;
-  bBirthYear: number;
-  stage: DatingMatchStage;
-  memo: string | null;
-  /** 쌍방 찜으로 자동 생성됐는지 (false = 관리자가 직접 만든 페어) */
-  fromMutual: boolean;
-  /** 지금도 쌍방 찜 상태인지 */
-  mutualNow: boolean;
-  createdAt: string;
-  updatedAt: string | null;
-}
 
 export interface MatchScoreMatrix {
   males: PersonBrief[];

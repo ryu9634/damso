@@ -1,7 +1,6 @@
 package com.damso.match.api.admin.dating.dto;
 
 import com.damso.match.api.app.dating.dto.DatingProfileCreateRequest;
-import com.damso.match.domain.dating.entity.DatingMatchStage;
 import com.damso.match.domain.dating.entity.DatingStatus;
 import com.damso.match.global.common.Gender;
 
@@ -48,10 +47,4 @@ public final class DatingAdminRequests {
             @Max(value = 23, message = "데이트 시간은 23시까지 선택할 수 있습니다")
             Integer dateHour
     ) {}
-
-    /** 매칭 페어 수동 생성. */
-    public record MatchCreate(@NotNull Long profileAId, @NotNull Long profileBId) {}
-
-    /** 매칭 단계 변경. */
-    public record MatchStageChange(@NotNull DatingMatchStage stage) {}
 }

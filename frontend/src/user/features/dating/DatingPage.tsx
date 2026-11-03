@@ -304,12 +304,6 @@ export default function DatingPage() {
     }
   }
 
-  function persistProfile(id: number) {
-    localStorage.setItem(STORAGE_KEY, String(id));
-    setProfileId(id);
-    setScreen('browse');
-  }
-
   /** 서버가 알려준 상태에 따라 열람 화면 또는 안내 화면으로 보낸다. */
   function applySelf(self: DatingSelf) {
     if (self.canSelect) {

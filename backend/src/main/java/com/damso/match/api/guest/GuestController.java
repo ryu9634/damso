@@ -2,7 +2,6 @@ package com.damso.match.api.guest;
 
 import com.damso.match.api.guest.dto.GuestCandidateDto;
 import com.damso.match.api.guest.dto.GuestMessageDto;
-import com.damso.match.api.guest.dto.GuestSeatDto;
 import com.damso.match.api.guest.dto.GuestSeatViewDto;
 import com.damso.match.api.guest.dto.GuestSettingsDto;
 import com.damso.match.domain.dating.service.MatchScoreService;
@@ -160,30 +159,6 @@ public class GuestController {
                     c == null ? "?" : c.getNickname()
             );
         }).toList();
-    }
-
-    // ─── 본인 자리 + 동석자 ────────────────────────────────
-    @GetMapping("/me/seat")
-    public GuestSeatDto mySeat(@RequestParam Long customerId, @RequestParam int round) {
-        Customer me = customerService.get(customerId);
-        List<SeatAssignment> seats = seatService.getAssignments(me.getEventId(), round);
-        SeatAssignment mine = seats.stream()
-                .filter(s -> s.getCustomerId().equals(customerId))
-                .findFirst().orElse(null);
-        if (mine == null) return GuestSeatDto.notAssigned();
-
-        Map<Long, Customer> byId = new HashMap<>();
-        customerRepository.findAllById(seats.stream().map(SeatAssignment::getCustomerId).toList())
-                .forEach(c -> byId.put(c.getId(), c));
-
-        List<GuestSeatDto.Partner> partners = seats.stream()
-                .filter(s -> s.getSeatNumber() == mine.getSeatNumber() && !s.getCustomerId().equals(customerId))
-                .map(s -> {
-                    Customer c = byId.get(s.getCustomerId());
-                    return new GuestSeatDto.Partner(c.getId(), c.getNickname(), c.getMbti(), c.getGender());
-                })
-                .toList();
-        return new GuestSeatDto(true, mine.getSeatNumber(), partners);
     }
 
     /** 본인과 이성 손님들 사이 매칭 점수 (2차 자리에서 표시용). */

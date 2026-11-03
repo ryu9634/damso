@@ -2,9 +2,7 @@ package com.damso.match.api.admin.dating;
 
 import com.damso.match.api.admin.dating.dto.DatingAdminDto;
 import com.damso.match.api.admin.dating.dto.DatingLikeDto;
-import com.damso.match.api.admin.dating.dto.DatingMatchDto;
 import com.damso.match.api.admin.dating.dto.DatingPairNoteDto;
-import com.damso.match.domain.dating.service.DatingMatchService;
 import com.damso.match.domain.dating.service.DatingService;
 import com.damso.match.api.admin.dating.dto.DatingAdminRequests.*;
 
@@ -18,7 +16,6 @@ import java.util.Map;
 /**
  * 관리자: 소개팅 회원 관리.
  *  - 조회(찜/쌍방 현황 포함) · 수정 · 상태/메모 · 소프트 삭제/복구/완전삭제 · 일괄 처리
- *  - 매칭 보드(페어 단위 진행 단계) 관리
  */
 @RestController
 @RequestMapping("/api/admin/dating")
@@ -26,7 +23,6 @@ import java.util.Map;
 public class AdminDatingController {
 
     private final DatingService datingService;
-    private final DatingMatchService matchService;
 
     // ─── 프로필 ─────────────────────────────────────────
     /** @param includeDeleted true 면 삭제된 회원(휴지통)까지 함께 내려준다. */
@@ -121,31 +117,5 @@ public class AdminDatingController {
     public void savePairNote(@PathVariable Long aId, @PathVariable Long bId,
                              @Valid @RequestBody PairNoteSave req) {
         datingService.savePairNote(aId, bId, req.memo(), req.dateDay(), req.dateHour());
-    }
-
-    // ─── 매칭 보드 ──────────────────────────────────────
-    @GetMapping("/matches")
-    public List<DatingMatchDto> matches() {
-        return matchService.listSynced();
-    }
-
-    @PostMapping("/matches")
-    public void createMatch(@Valid @RequestBody MatchCreate req) {
-        matchService.create(req.profileAId(), req.profileBId());
-    }
-
-    @PatchMapping("/matches/{id}/stage")
-    public void setMatchStage(@PathVariable Long id, @Valid @RequestBody MatchStageChange req) {
-        matchService.setStage(id, req.stage());
-    }
-
-    @PatchMapping("/matches/{id}/memo")
-    public void setMatchMemo(@PathVariable Long id, @Valid @RequestBody MemoChange req) {
-        matchService.setMemo(id, req.memo());
-    }
-
-    @DeleteMapping("/matches/{id}")
-    public void deleteMatch(@PathVariable Long id) {
-        matchService.delete(id);
     }
 }
