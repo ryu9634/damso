@@ -40,11 +40,6 @@ public class AdminQuestionController {
         return service.move(id, "up".equalsIgnoreCase(direction));
     }
 
-    @PostMapping("/reset-default")
-    public List<ValueQuestion> resetDefault() {
-        return service.resetToDefault();
-    }
-
     public static class QuestionRequest {
         public String label;
         public String optionA;

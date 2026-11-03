@@ -26,14 +26,6 @@ public class EventService {
     private final MessageRepository messageRepository;
 
     @Transactional
-    public Event create(String name) {
-        return eventRepository.save(Event.builder()
-                .name(name)
-                .status(EventStatus.REGISTRATION)
-                .build());
-    }
-
-    @Transactional
     public Event getOrCreateCurrent() {
         return eventRepository.findTopByOrderByIdDesc()
                 .orElseGet(() -> {

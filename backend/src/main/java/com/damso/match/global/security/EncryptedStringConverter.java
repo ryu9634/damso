@@ -1,7 +1,5 @@
 package com.damso.match.global.security;
 
-import com.damso.match.global.schema.PiiEncryptionMigration;
-
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
@@ -11,9 +9,6 @@ import jakarta.persistence.Converter;
  * <p>엔티티 필드에 {@code @Convert(converter = EncryptedStringConverter.class)} 만 붙이면
  * 서비스·화면은 평문을 그대로 쓴다. 결정적 암호화라 {@code findByPhone(...)} 같은 등호 조회도
  * 파라미터가 같은 규칙으로 암호화되어 그대로 맞는다.
- *
- * <p>암호화 전 데이터(접두어 없음)는 읽을 때 그대로 돌려주므로, 부팅 시 일괄 이관
- * ({@link com.damso.match.global.schema.PiiEncryptionMigration})이 끝나기 전에도 화면이 깨지지 않는다.
  */
 @Converter
 public class EncryptedStringConverter implements AttributeConverter<String, String> {

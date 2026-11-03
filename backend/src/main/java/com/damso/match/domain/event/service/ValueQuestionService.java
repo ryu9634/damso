@@ -108,14 +108,4 @@ public class ValueQuestionService {
         a.setSortOrder(b.getSortOrder());
         b.setSortOrder(tmp);
         return repo.findAllByOrderBySortOrderAsc();
-    }
-
-    /** 기본 16문항으로 초기화 (기존 문항 모두 삭제). */
-    @Transactional
-    public List<ValueQuestion> resetToDefault() {
-        repo.deleteAll();
-        repo.flush();
-        seedIfEmpty();
-        return list();
-    }
-}
+    }}

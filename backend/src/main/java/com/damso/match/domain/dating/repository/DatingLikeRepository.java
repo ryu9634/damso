@@ -13,6 +13,5 @@ public interface DatingLikeRepository extends JpaRepository<DatingLike, Long> {
     List<DatingLike> findByToProfileId(Long toProfileId);
     Optional<DatingLike> findByFromProfileIdAndToProfileId(Long fromProfileId, Long toProfileId);
     List<DatingLike> findByStatus(DatingLikeStatus status);
-    void deleteByFromProfileIdAndToProfileId(Long fromProfileId, Long toProfileId);
     void deleteByFromProfileIdOrToProfileId(Long fromProfileId, Long toProfileId);
 }

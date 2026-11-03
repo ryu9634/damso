@@ -96,7 +96,7 @@ public class DatingProfile {
 
     // ─── 관리 정보 (관리자 전용) ─────────────────────────
     /** 관리 상태. 기존 행은 NULL 일 수 있으므로 읽을 때 {@link DatingStatus#orDefault} 로 보정한다. */
-    @Convert(converter = DatingStatusConverter.class)
+    @Enumerated(EnumType.STRING)
     @Column(length = 20)
     private DatingStatus status;
 

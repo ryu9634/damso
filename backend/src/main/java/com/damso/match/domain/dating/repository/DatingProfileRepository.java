@@ -18,5 +18,4 @@ public interface DatingProfileRepository extends JpaRepository<DatingProfile, Lo
     /** 앱 계정에 연결된 프로필. */
     Optional<DatingProfile> findByAppUserIdAndDeletedAtIsNull(Long appUserId);
 
-    List<DatingProfile> findByDeletedAtIsNull();
 }

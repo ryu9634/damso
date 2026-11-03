@@ -4,14 +4,12 @@ import com.damso.match.domain.admin.service.AdminAuthService;
 import com.damso.match.domain.game.service.GameService;
 import com.damso.match.domain.member.service.AuthService;
 import com.damso.match.domain.venue.service.DrinkService;
-import com.damso.match.global.schema.AppUserSchemaMigration;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -26,7 +24,6 @@ import java.time.LocalDate;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-@Order(10)   // 스키마 보정(AppUserSchemaMigration) 이 끝난 뒤에 계정을 넣는다
 public class DataSeeder implements ApplicationRunner {
 
     private static final String TEST_LOGIN_ID = "test";

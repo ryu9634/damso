@@ -12,10 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 /**
- * 배포 직후 이 인스턴스가 실제로 서비스 가능한 상태인지 확인하는 용도.
- *
- * <p>단순히 프로세스가 살아 있는지가 아니라 DB 까지 닿는지를 본다.
- * 배포 스크립트가 이 응답으로 성공/롤백을 판단하므로, DB 가 죽었으면 반드시 503 이어야 한다.
+ * 서버가 실제로 요청을 처리할 수 있는 상태인지 확인한다.
+ * 프로세스 생존뿐 아니라 DB 까지 닿는지를 보고, DB 가 죽었으면 503 을 준다.
  */
 @Slf4j
 @RestController

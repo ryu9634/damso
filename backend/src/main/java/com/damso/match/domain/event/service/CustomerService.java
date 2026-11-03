@@ -63,14 +63,6 @@ public class CustomerService {
         return customerRepository.findByEventIdOrderByCreatedAtAsc(eventId);
     }
 
-    public List<Customer> listActive(Long eventId) {
-        return customerRepository.findByEventIdAndStatusOrderByCreatedAtAsc(eventId, CustomerStatus.ACTIVE);
-    }
-
-    public List<Customer> listByGender(Long eventId, Gender gender) {
-        return customerRepository.findByEventIdAndGenderOrderByCreatedAtAsc(eventId, gender);
-    }
-
     public List<Customer> listActiveByGender(Long eventId, Gender gender) {
         return customerRepository.findByEventIdAndGenderAndStatusOrderByCreatedAtAsc(eventId, gender, CustomerStatus.ACTIVE);
     }
@@ -117,19 +109,6 @@ public class CustomerService {
         return c;
     }
 
-    public long countTotal(Long eventId) {
-        return customerRepository.countByEventId(eventId);
-    }
-
-    public long countActive(Long eventId) {
-        return customerRepository.countByEventIdAndStatus(eventId, CustomerStatus.ACTIVE);
-    }
-
     public long countByGender(Long eventId, Gender gender) {
         return customerRepository.countByEventIdAndGender(eventId, gender);
-    }
-
-    public long countActiveByGender(Long eventId, Gender gender) {
-        return customerRepository.countByEventIdAndGenderAndStatus(eventId, gender, CustomerStatus.ACTIVE);
-    }
-}
+    }}

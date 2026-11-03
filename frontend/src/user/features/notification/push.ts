@@ -26,10 +26,6 @@ export function needsHomeScreen(): boolean {
   return isIos && !standalone;
 }
 
-export function pushPermission(): NotificationPermission | 'unsupported' {
-  return pushSupported() ? Notification.permission : 'unsupported';
-}
-
 async function registration(): Promise<ServiceWorkerRegistration> {
   const reg = await navigator.serviceWorker.register('/sw.js');
   // 갓 등록한 워커가 활성화될 때까지 기다린다.

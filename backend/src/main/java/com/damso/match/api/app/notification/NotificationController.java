@@ -1,7 +1,6 @@
 package com.damso.match.api.app.notification;
 
 import com.damso.match.api.app.notification.dto.NotificationDto;
-import com.damso.match.domain.member.entity.AppUser;
 import com.damso.match.domain.member.service.AuthService;
 import com.damso.match.domain.notification.service.NotificationService;
 
@@ -32,13 +31,6 @@ public class NotificationController {
     @GetMapping("/unread-count")
     public Map<String, Integer> unreadCount(@RequestHeader(value = "Authorization", required = false) String auth) {
         return Map.of("count", notifications.unreadCount(authService.requireUser(auth)));
-    }
-
-    @PostMapping("/{id}/read")
-    public void read(@RequestHeader(value = "Authorization", required = false) String auth,
-                     @PathVariable Long id) {
-        AppUser user = authService.requireUser(auth);
-        notifications.markRead(user, id);
     }
 
     @PostMapping("/read-all")

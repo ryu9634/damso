@@ -144,8 +144,6 @@ export const notificationApi = {
   unreadCount: () =>
     api.get<{ count: number }>('/app/notifications/unread-count').then((r) => r.data.count),
 
-  read: (id: number) => api.post(`/app/notifications/${id}/read`).then((r) => r.data),
-
   readAll: () => api.post('/app/notifications/read-all').then((r) => r.data),
 };
 
