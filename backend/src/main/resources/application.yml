@@ -1,6 +1,6 @@
-### 모든 환경 공통 설정.
-### DB · 로깅 · CORS 처럼 환경마다 달라지는 값은 application-dev.yml / application-prod.yml 에 있다.
-### 프로파일을 지정하지 않으면 dev 로 동작하므로, 로컬 실행 방법은 예전과 같다.
+### 공통 설정.
+### 개발 편의 설정(Swagger · 느슨한 CORS · 테스트 계정)은 application-dev.yml 에 있다.
+### 프로파일을 지정하지 않으면 dev 로 동작한다.
 spring:
   application:
     name: damso-match
@@ -8,10 +8,15 @@ spring:
   profiles:
     default: dev
 
-  # 커넥션 풀(HikariCP) 공통 설정. 풀 크기는 DB 마다 달라서 프로파일 파일에 둔다.
+  # DB 는 PostgreSQL 하나만 쓴다. 로컬은 루트의 docker-compose.yml 로 띄운다.
   datasource:
+    url: jdbc:postgresql://${DB_HOST:127.0.0.1}:${DB_PORT:5432}/${DB_NAME:damso}
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_USER:damso}
+    password: ${DB_PASSWORD:damso}
     hikari:
       pool-name: damso-pool
+      maximum-pool-size: 10
       # 풀이 바닥났을 때 기본 30초를 기다리면 요청과 헬스체크가 같이 멈춘다. 빨리 실패시킨다.
       connection-timeout: 5000
       validation-timeout: 3000
@@ -28,27 +33,26 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
-    # Flyway 도입 전부터 있던 DB(ddl-auto 로 만든 것)는 V1 을 건너뛰고 "V1 까지 적용됨"으로 표시한다.
-    # 빈 DB 는 이 설정과 상관없이 V1 부터 실행한다.
-    baseline-on-migrate: true
-    baseline-version: 1
-    baseline-description: ddl-auto 로 만들어진 기존 스키마
 
   jpa:
     hibernate:
       ddl-auto: validate
     properties:
       hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
     show-sql: false
     open-in-view: false
 
 damso:
-  # 업로드된 소개팅 사진 저장 위치. 운영에서는 릴리스 디렉터리 바깥을 가리켜야 한다.
+  # 테스트 계정(test/test1234) 생성 여부. dev 프로파일에서만 켠다.
+  seed-test-user: false
+
+  # 업로드된 소개팅 사진 저장 위치.
   uploads: ${DAMSO_UPLOADS:./uploads}
 
   # 간편로그인 앱 키 — 값이 비어 있으면 앱 화면에 해당 버튼이 나오지 않는다.
-  # 발급 후 환경변수(KAKAO_CLIENT_ID 등)로 넣는다. 운영에서는 /etc/damso/damso.env 에 둔다.
+  # 발급 후 환경변수(KAKAO_CLIENT_ID 등)로 넣는다.
   oauth:
     kakao:
       client-id: ${KAKAO_CLIENT_ID:}
@@ -59,7 +63,7 @@ damso:
       client-secret: ${NAVER_CLIENT_SECRET:}
       redirect-uri: ${NAVER_REDIRECT_URI:}
 
-# API 문서. 운영에서는 기본으로 닫혀 있고 DAMSO_SWAGGER=true 로만 연다. (dev 는 application-dev.yml 에서 켠다)
+# API 문서. 기본으로 닫혀 있고 DAMSO_SWAGGER=true 로만 연다. (dev 는 application-dev.yml 에서 켠다)
 springdoc:
   api-docs:
     enabled: ${DAMSO_SWAGGER:false}
@@ -75,3 +79,10 @@ server:
   port: ${SERVER_PORT:8080}
   servlet:
     context-path: /
+  shutdown: graceful
+
+logging:
+  level:
+    root: INFO
+    com.damso.match: INFO
+    org.hibernate.SQL: WARN

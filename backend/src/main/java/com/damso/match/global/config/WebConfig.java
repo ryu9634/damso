@@ -26,7 +26,7 @@ public class WebConfig implements WebMvcConfigurer {
 
     /** SPA 로 넘기면 안 되는 경로. 여기에 걸리면 index.html 대신 404 를 준다. */
     private static final List<String> BACKEND_PREFIXES = List.of(
-            "api/", "uploads/", "h2-console", "v3/api-docs", "swagger-ui");
+            "api/", "uploads/", "v3/api-docs", "swagger-ui");
 
     @Value("${damso.uploads:./uploads}")
     private String uploadDir;

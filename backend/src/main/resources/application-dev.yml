@@ -1,26 +1,5 @@
 ### 로컬 개발 프로파일 (프로파일 미지정 시 기본값).
-### H2 파일 DB · H2 콘솔 · 느슨한 CORS — 전부 로컬 전용이며 운영에서는 켜지지 않는다.
-spring:
-  datasource:
-    url: jdbc:h2:file:${damso.data:./data/damso};AUTO_SERVER=TRUE;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;NON_KEYWORDS=USER
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
-    hikari:
-      maximum-pool-size: 5
-
-  jpa:
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.H2Dialect
-
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-      settings:
-        web-allow-others: true
-
+### Swagger · 느슨한 CORS · 테스트 계정 — 전부 개발 편의용이다.
 springdoc:
   api-docs:
     enabled: true
@@ -28,7 +7,7 @@ springdoc:
     enabled: true
 
 damso:
-  # 프론트를 Vite 개발 서버(5173)에서 띄우고, 손님 휴대폰이 LAN IP 로 접속하므로 모든 오리진을 허용한다.
+  # 프론트를 Vite 개발 서버(5173)에서 띄우고, 휴대폰이 LAN IP 로 접속하므로 모든 오리진을 허용한다.
   cors:
     allowed-origin-patterns: "*"
   seed-test-user: true

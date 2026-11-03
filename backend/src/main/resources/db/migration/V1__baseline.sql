@@ -1,17 +1,6 @@
--- 기준 스키마 (Flyway 도입 시점, 2026-09-30).
+-- 기준 스키마.
 --
--- 그전까지는 ddl-auto=update 가 스키마를 만들었다. 이 파일은 그때 Hibernate 가 만들던 DDL 을
--- 그대로 옮긴 것이며 H2(MODE=PostgreSQL) 와 PostgreSQL 양쪽에서 돈다.
---
--- 이미 테이블이 있는 DB(AWS 운영, 집 PC, 개발 PC)는 이 파일을 실행하지 않는다.
--- baseline-on-migrate 로 "V1 까지 적용됨" 표시만 하고 V2 부터 실행한다.
--- 그러므로 이 파일은 절대 고치지 않는다. 스키마 변경은 V2__*.sql 부터 새 파일로 한다.
---
--- Hibernate 원본과 다른 점:
---  * enum 컬럼의 CHECK 제약을 뺐다. ddl-auto 시절에도 enum 값이 늘면 이 제약 때문에 INSERT 가
---    터져서 SchemaOps.dropEnumCheck 로 지우고 있었다.
---  * dating_pair_notes 의 unique 제약을 뺐다. 엔티티가 없는 컬럼(profile_a_id)을 가리키고 있어서
---    기존 DB 어디에도 만들어지지 않았다. 새 DB 도 기존 DB 와 같은 모양으로 맞춘다.
+-- 스키마 변경은 이 파일을 고치지 말고 V2__*.sql 부터 새 파일로 추가한다.
 
 create table admin_sessions (
     admin_id bigint not null,
