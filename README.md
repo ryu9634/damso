@@ -96,6 +96,27 @@ docker compose up -d           # 로컬 PostgreSQL
 
 손님 휴대폰은 PC와 같은 와이파이에 연결돼 있어야 한다. LAN IP는 관리자 페이지의 "손님 입장 QR" 화면에 자동으로 표시된다.
 
+### 테스트
+
+```bash
+cd backend && mvn test
+```
+
+통합 테스트는 Testcontainers로 **실제 PostgreSQL 16 컨테이너**를 띄우고, 앱 전체를 임의 포트로 기동한 뒤 HTTP로 API를 호출한다.
+Flyway 마이그레이션 → Hibernate `validate` → 컨트롤러 → 서비스 → DB까지 운영과 같은 경로를 지난다. Docker만 있으면 된다.
+
+| 테스트 | 확인하는 것 |
+|---|---|
+| `ApplicationBootIntegrationTest` | 빈 DB에서 마이그레이션 적용, 엔티티·스키마 일치, 헬스체크, 초기 데이터 시드 |
+| `AdminAuthIntegrationTest` | 관리자 API 잠금(401), 로그인·로그아웃 후 토큰 폐기 |
+| `AppAuthIntegrationTest` | 가입·로그인, 중복 아이디(409), 입력 검증(400), **개인정보가 DB에 암호문으로 저장되는지** |
+| `EventFlowIntegrationTest` | 손님 등록(중복 등록 방지) → 1·2차 자리 배치 → 호감도 지목 → 메시지 |
+| `DatingFlowIntegrationTest` | 심사 전 이용 차단, 남의 프로필 사칭 차단, 좋아요 → 수락 후에만 이름 공개 |
+| `SeatAssignmentServiceTest` | 자리 배치 알고리즘의 성질 (단위 테스트, Mockito) |
+
+컨테이너와 스프링 컨텍스트는 모든 테스트 클래스가 공유해서 기동 비용은 한 번만 든다. 대신 테스트끼리 DB를 함께 쓰므로 각 테스트는 겹치지 않는 데이터를 직접 만든다.
+PR과 main 푸시마다 GitHub Actions(`.github/workflows/ci.yml`)가 같은 테스트와 프론트 빌드를 돌린다.
+
 ### 데이터 위치
 
 - DB: PostgreSQL (`docker compose`의 `damso-db` 볼륨)
@@ -214,6 +235,7 @@ docker compose up -d           # 로컬 PostgreSQL
 │
 ├── scripts/                  # start.sh, stop.sh, seed_dummy.py
 ├── docs/                     # PORTFOLIO, DEVLOG
+├── .github/workflows/ci.yml  # PR·main 마다 테스트와 프론트 빌드
 └── docker-compose.yml        # 로컬 PostgreSQL
 ```
 
