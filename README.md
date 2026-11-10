@@ -1,269 +1,165 @@
-# 담소 (damso) — 매장 내 소규모 소개팅 이벤트 운영 플랫폼
+<div align="center">
 
-혼술바에서 진행하는 오프라인 소개팅 이벤트를 처음부터 끝까지 소프트웨어로 옮긴 서비스다.
-관리자는 PC에서 단계를 진행하고, 손님은 휴대폰으로 자기 자리와 호감도 지목, 메시지 전송을 한다.
-이벤트 날에만 쓰는 도구로 시작했지만, 지금은 상시 소개팅(셀렉팅)과 게임방, 매장 캘린더까지 품은 매장 앱이 됐다.
+# 🍷 담소 — 매장 소개팅 이벤트 운영 플랫폼
 
-기획, 백엔드, 프론트, DB까지 전 영역을 혼자 만들었다. (2026.06 ~ 현재 운영 중지)
+**오프라인 소개팅 이벤트의 자리 배치를 궁합 점수 기반 최적화 문제로 풀어 자동화한 웹 서비스**
 
-| 영역 | 하는 일 |
+Java 21 · Spring Boot 3.3 · JPA · PostgreSQL · Flyway · React · TypeScript · Testcontainers
+
+<img src="docs/images/hero.png" alt="관리자 자리 배치 화면과 손님 모바일 화면" width="900">
+
+</div>
+
+<br>
+
+## 📌 프로젝트 개요
+
+- **한 줄 소개:** 혼술바 소개팅 이벤트를 관리자 PC와 손님 휴대폰으로 진행하는 웹 서비스
+- **기간 / 인원:** 2026.06 ~ (약 3개월) / 1인 개인 프로젝트
+- **담당:** 기획, 백엔드, 프론트엔드, DB 설계, 테스트 전부
+- **규모:** 엔티티 30 · REST API 152 · 테스트 37 (단위 20 + 통합 17)
+
+**해결하려던 문제**
+
+18명(남 9 · 여 9)이 한 이벤트에서 자리를 네 번 바꿉니다. 매번 "누구를 누구 옆에 앉힐지"를 사람이 직접 정하면 느리고 결과도 들쭉날쭉합니다. 이 결정을 **궁합 점수를 최대화하는 할당 문제로 정의하고 자동으로 풀도록** 만들었습니다.
+
+<br>
+
+## 🖥️ 주요 화면
+
+<table>
+  <tr>
+    <td width="50%"><b>궁합 점수 행렬</b><br><sub>MBTI 20점 + 가치관 설문 80점, 남녀 81쌍을 한눈에</sub></td>
+    <td width="50%"><b>호감도 지목 현황</b><br><sub>쌍방 1·2순위를 자동으로 찾아 4차 배치에 반영</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/images/admin-scores.png" alt="궁합 점수 행렬"></td>
+    <td><img src="docs/images/admin-preferences.png" alt="호감도 지목 현황"></td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td align="center" width="33%"><b>홈</b><br><sub>진행 중인 이벤트로 바로 입장</sub></td>
+    <td align="center" width="33%"><b>내 자리 · 메시지</b><br><sub>4초마다 진행 단계 동기화</sub></td>
+    <td align="center" width="33%"><b>셀렉팅 · 받은 좋아요</b><br><sub>쌍방 수락 후에만 이름 공개</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/images/app-home.png" alt="홈"></td>
+    <td><img src="docs/images/app-matching.png" alt="내 자리"></td>
+    <td><img src="docs/images/app-likes.png" alt="받은 좋아요"></td>
+  </tr>
+</table>
+
+<sub>※ 화면 속 이름·연락처는 모두 더미 데이터입니다.</sub>
+
+<br>
+
+## ✨ 주요 기능
+
+### 현장 소개팅 — 관리자가 단계를 넘기면 손님 화면이 따라 바뀐다
+
+```mermaid
+flowchart LR
+    A[손님 등록] --> B[1차 자리<br/>입력한 자리]
+    B --> C[2차 자리<br/>궁합 최대]
+    C --> D[3차 자리<br/>궁합 최소]
+    D --> E[호감도 지목<br/>1·2순위]
+    E --> F[4차 자리<br/>쌍방 지목 우선]
+    F --> G[메시지 전달]
+    G --> H[종료]
+```
+
+### 셀렉팅 (상시 소개팅)
+프로필 등록 → 관리자 심사 → 좋아요(하루 2명, 72시간 뒤 자동 만료) → 쌍방 수락 시 이름 공개 → 만남 약속 → 웹 푸시 알림
+
+### 회원 · 운영
+아이디 가입과 카카오/네이버 로그인, 회원 심사, 통계, 게임방, 매장 캘린더, 방명록
+
+<br>
+
+## 🔧 기술적으로 집중한 것
+
+### 1. 자리 배치 = 이분 그래프 최대 가중치 매칭
+> 📄 [`SeatAssignmentService`](backend/src/main/java/com/damso/match/domain/event/service/SeatAssignmentService.java)
+
+| 문제 | 해결 |
 |---|---|
-| 매칭 이벤트 | 현장 8단계 진행 — 등록 → 1~3차 자리 배치 → 호감도 지목 → 4차 자리 배치 → 메시지 → 종료 |
-| 셀렉팅 | 상시 운영 소개팅. 프로필, 좋아요, 쌍방 매칭, 약속 잡기, 웹 푸시 알림 |
-| 게임방과 매장 앱 | 방 코드로 모여 하는 게임, 매장 영업 캘린더, 방명록, 주류 메뉴 |
+| 남녀를 궁합 좋은 순으로 앉혀야 함 | 궁합 점수를 간선 가중치로 둔 **할당 문제**로 정의 |
+| 어떤 알고리즘을 쓸지 | 좌석이 최대 9석(9! = 36만 가지)이라 **순열 완전탐색으로 정확한 최적해**. 탐색부는 메서드 하나로 격리해 헝가리안 알고리즘 등으로 교체 가능 |
+| 회차마다 전략이 다름 | **점수 행렬만 바꾸고 탐색은 공유**. 3차(궁합 최소)는 2차 계산에서 부호만 뒤집음 |
+| 여러 제약을 동시에 만족 | 분기 대신 **가중치 하나로 표현**: 이전 자리 회피 `-1e15`, 우선순위 `1000^tier`, 동점은 미세 노이즈 |
+| 성비가 안 맞으면 뒤에 등록한 사람이 늘 빠지는 버그 | "짝 없음" **가상 열을 채워 정사각 행렬**로 만들어 해결 |
 
-사용자는 세 종류이고 화면과 권한이 각각 다르다.
+### 2. 검색이 되는 개인정보 암호화
+> 📄 [`DataCrypto`](backend/src/main/java/com/damso/match/global/security/DataCrypto.java) · [`EncryptedStringConverter`](backend/src/main/java/com/damso/match/global/security/EncryptedStringConverter.java)
 
-- 손님 휴대폰: QR로 입장, 로그인 없음 (`/api/guest/**`)
-- 회원 앱 (PWA): 아이디 가입 또는 카카오/네이버 로그인 (`/api/app/**`)
-- 관리자 PC: 이벤트 진행, 회원 심사, 통계 (`/api/admin/**`)
+- 실명·전화번호를 **AES-256-GCM**으로 컬럼 단위 암호화했습니다. JPA `AttributeConverter`로 붙여서 서비스 코드는 평문만 다룹니다.
+- 무작위 IV를 쓰면 `findByPhone()`이 동작하지 않습니다. 그래서 **IV를 평문의 HMAC으로 만드는 결정적 암호화**를 택했습니다.
+- 대가로 "같은 값끼리 같다"는 정보는 드러납니다. 중복 가입을 막으려면 등호 조회가 필요해서 이 트레이드오프를 알고 선택했습니다.
 
----
+### 3. 패키지 경계 = 인증 경계
+> 📄 [`AdminAuthInterceptor`](backend/src/main/java/com/damso/match/global/security/AdminAuthInterceptor.java) · [`AuthService`](backend/src/main/java/com/damso/match/domain/member/service/AuthService.java)
 
-## 기술 스택과 선택 이유
+- 사용자 3종을 `api/admin`, `api/app`, `api/guest`로 나눠, **컨트롤러 위치만 보면 인증 방식을 알 수 있습니다.**
+- JWT 대신 **DB 저장 토큰**을 씁니다. 관리자가 회원을 차단하면 그 즉시 로그아웃돼야 하기 때문입니다.
 
-이 프로젝트의 제약 조건은 세 가지였다. **혼자 만든다**, **매장 노트북에서도 돌아야 한다**, **동시 접속은 많아야 수십 명이다**.
-기술 선택은 대부분 이 세 가지에서 나왔다. "유명해서"가 아니라 "이 규모에서 운영 부담이 가장 적어서" 고른 것들이다.
+### 4. 실제 PostgreSQL에서 검증하는 테스트
+> 📄 [`IntegrationTest`](backend/src/test/java/com/damso/match/support/IntegrationTest.java) · [`SeatAssignmentServiceTest`](backend/src/test/java/com/damso/match/domain/event/service/SeatAssignmentServiceTest.java)
 
-### 백엔드
+- **통합 테스트:** Testcontainers로 PostgreSQL을 띄우고 앱 전체를 HTTP로 호출합니다. 인증·인가, 개인정보 암호문 저장, 이벤트·셀렉팅 흐름을 검증합니다.
+- **알고리즘 테스트:** 구현을 따라 하지 않는 **독립 브루트포스 오라클**과 결과를 비교해 "최적인가"라는 성질만 확인합니다.
+- **스키마와 CI:** Flyway가 스키마를 만들고 Hibernate는 `validate`만 합니다. GitHub Actions가 PR마다 테스트와 빌드를 돌립니다.
 
-| 기술 | 버전 | 선택 이유 |
-|---|---|---|
-| Java | 21 | 가장 익숙한 언어이고, record와 switch 패턴 매칭 덕분에 DTO와 상태 분기 코드가 짧아진다. LTS 버전이라 운영 서버에 올려 두고 오래 쓸 수 있다. |
-| Spring Boot | 3.3.5 | 웹, JPA, 검증, 스케줄링을 스타터 하나씩으로 붙일 수 있어 1인 개발에서 설정에 쓰는 시간이 가장 적다. 프로파일(dev)로 개발 편의 설정만 따로 분리할 수 있는 점도 컸다. |
-| Spring Data JPA (Hibernate) | Boot 관리 | 엔티티가 30개 안팎이고 조회 패턴이 단순해서 JPA의 생산성이 그대로 이득이 된다. 개인정보 컬럼 암호화를 `AttributeConverter` 하나로 끼워 넣을 수 있었던 것도 JPA를 쓴 덕분이다. 서비스 코드는 평문만 다룬다. |
-| Flyway | Boot 관리 | `ddl-auto`에 맡기면 스키마가 언제 무엇이 바뀌었는지 추적이 안 된다. 스키마는 `V*__*.sql`로 버전 관리하고 Hibernate는 `validate`만 하게 해서, 엔티티와 테이블이 어긋나면 기동 자체가 실패하도록 했다. |
-| PostgreSQL | runtime | 유일한 DB. 로컬은 `docker-compose.yml`로 띄운다. 읽기 전용 트랜잭션 강제 같은 엄격함이 버그를 일찍 드러내 준다. |
-| Spring Security Crypto | 단독 사용 | BCrypt 해싱만 필요했다. 시큐리티 필터체인 전체를 올리면 관리자, 회원, 현장 손님이라는 세 가지 인증 방식을 필터 설정으로 표현해야 하는데, 이 프로젝트에서는 URL 경계(`api/admin`, `api/app`, `api/guest`)가 곧 인증 경계라서 인터셉터 하나와 토큰 조회가 더 읽기 쉬웠다. |
-| web-push (VAPID) | 5.1.1 | 셀렉팅에서 좋아요나 약속 알림을 앱이 닫혀 있어도 보내야 했다. 푸시 페이로드 암호화 규격(RFC 8291)을 직접 구현하지 않으려고 라이브러리를 썼고, 발송은 Java 기본 `HttpClient`로 하기 때문에 라이브러리가 끌고 오는 HTTP 클라이언트들은 전부 제외했다. |
-| springdoc-openapi | 2.6.0 | 엔드포인트가 160개가 넘어서 프론트 작업 중 "이 API 응답 모양이 뭐였지"를 매번 코드로 확인하기 어려웠다. dev 프로파일에서만 켜지고 그 밖에는 `DAMSO_SWAGGER=true`일 때만 열린다. |
-| Lombok | 1.18.38 | 엔티티와 DTO의 보일러플레이트를 줄인다. 생성자 주입은 `@RequiredArgsConstructor`로 통일했다. |
-| Maven | — | Gradle보다 선택한 이유는 하나다. `maven-resources-plugin`으로 프론트 빌드 산출물을 jar 안 `static/`에 넣는 설정이 XML 몇 줄로 끝나고, 결과가 예측 가능하다. |
+<br>
 
-### 프론트엔드
+## 🚨 트러블슈팅 — 로컬에선 통과, PostgreSQL에서만 500
 
-| 기술 | 버전 | 선택 이유 |
-|---|---|---|
-| React | 18 | 관리자 콘솔과 손님 앱이 같은 저장소에서 공용 컴포넌트와 타입을 나눠 쓴다. 두 앱 모두 "서버 상태를 몇 초마다 다시 받아 그린다"는 패턴이 핵심이라 훅 기반 상태 관리가 잘 맞았다. |
-| TypeScript | 5.6 | API 응답 타입을 `shared/types`에 한 번 정의하면 관리자 화면과 손님 화면이 같은 계약을 쓴다. 혼자 개발하면서 백엔드 DTO를 바꿨을 때 어느 화면이 깨지는지 컴파일 단계에서 알 수 있는 게 가장 큰 이득이었다. |
-| Vite | 5.4 | 개발 서버가 빠르고, `/api`와 `/uploads`를 백엔드(8080)로 넘기는 프록시 설정이 간단하다. 손님 휴대폰이 LAN IP로 접속해야 해서 `host: 0.0.0.0`으로 띄운다. |
-| Tailwind CSS | 3.4 | 디자이너 없이 관리자 화면 20여 개와 모바일 화면 20여 개를 만들어야 했다. 클래스만으로 일관된 간격과 색을 유지할 수 있고, 별도 CSS 파일을 관리하지 않아도 된다. |
-| React Router | 6 | `/admin`, `/dating`, `/` 세 진입점을 각각 다른 앱(관리자, 셀렉팅, 손님)이 맡는다. `App.tsx`는 "어느 경로를 어느 앱이 맡는지"만 적는다. |
-| axios | 1.7 | 관리자 토큰(`damso.admin.token`)과 회원 토큰(`damso.app.token`)을 각각 붙이는 클라이언트 인스턴스를 두 개 만든다. 인터셉터로 401을 한 곳에서 처리한다. |
-| qrcode.react | 4.2 | 관리자 화면에 매장 LAN IP가 담긴 "손님 입장 QR"을 띄운다. 손님은 URL을 치지 않고 스캔만 하면 된다. |
-| 서비스워커 (PWA) | — | 웹 푸시 수신 전용이다. 오프라인 캐시는 일부러 하지 않았다. 이벤트 진행 중 화면이 옛 상태로 캐시되면 손님이 엉뚱한 자리에 앉는다. |
+- **증상:** 앱에서 등록하면 500, 관리자 화면에서 등록하면 정상이었습니다. 로컬에서는 재현되지 않았습니다.
+- **원인:** 클래스에는 `@Transactional(readOnly = true)`가 걸려 있는데, 쓰기 메서드 하나에 `@Transactional`이 빠져 있었습니다. PostgreSQL은 읽기 전용 트랜잭션의 INSERT를 거부(SQLState 25006)했지만, 로컬 H2는 이를 강제하지 않아 테스트가 통과했습니다.
+- **해결:** 쓰기 트랜잭션을 붙이고, 같은 패턴(클래스는 readOnly, 메서드는 쓰기)을 전수 점검했습니다.
+- **교훈:** **운영보다 관대한 DB로 하는 테스트는 위험합니다.** 이후 H2를 제거하고 개발·테스트를 PostgreSQL로 통일했습니다.
 
-### 구조
+<br>
 
-| 기술 | 선택 이유 |
-|---|---|
-| 단일 jar | Maven이 `frontend/dist/`가 있으면 jar 안 `static/`으로 복사한다. 파일 하나가 프론트와 API를 같은 오리진에서 서빙하므로 CORS 설정이 필요 없다. |
-| 4초 폴링 (WebSocket 미사용) | 동시 접속 18명 규모에서 WebSocket의 연결 유지, 재연결 설정을 감당할 이유가 없었다. 손님 화면은 4초, 관리자 모니터링 화면은 3~5초마다 다시 받는다. |
+## 🏗️ 구조
 
-### 다른 선택지를 두고 고민한 것
+```mermaid
+flowchart LR
+    AD[관리자 콘솔<br/>React] -->|/api/admin| API
+    US[손님 앱 PWA<br/>React] -->|/api/app · /api/guest| API
+    API[api 계층<br/>인증 경계] --> DOM[domain 계층<br/>비즈니스 로직]
+    DOM --> DB[(PostgreSQL<br/>Flyway)]
+```
 
-- **JWT 대신 DB 저장 불투명 토큰.** 관리자가 회원을 즉시 차단하거나 휴면 처리해야 하는데, 자체 만료되는 JWT로는 "지금 당장 끊기"가 안 된다. 세션을 DB에 두면 삭제가 곧 로그아웃이다.
-- **헝가리안 알고리즘 대신 순열 완전탐색.** 좌석이 최대 9석이라 9! = 362,880 조합이 수 ms에 끝난다. Big-O가 아니라 실제 문제 크기에 맞는 도구를 골랐고, 좌석이 늘어나도 갈아끼울 수 있게 탐색부를 메서드 하나로 격리했다.
-- **무작위 IV 대신 결정적 암호화.** 전화번호를 AES-GCM으로 암호화하면 `findByPhone()`이 깨진다. IV를 평문의 HMAC으로 유도해 같은 평문이 같은 암호문이 되게 했다. "같은 번호를 쓰는 두 행이 있다"는 사실이 암호문만 봐도 드러나는 단점은 알고 감수했다. 그걸 포기하면 중복 가입 차단이 불가능하다.
-- **Spring Security 전체 대신 인터셉터.** 위 표에 적은 대로다. 세 가지 인증 방식을 URL 경계로 나눴기 때문에, 컨트롤러가 어느 폴더에 있는지만 보면 잠겨 있는지 알 수 있다.
+```
+backend/src/main/java/com/damso/match
+├── api/        # 호출 주체별 컨트롤러 (admin · app · guest) = 인증 경계
+├── domain/     # 비즈니스 로직 (event · dating · member · game · venue · notification · setting)
+└── global/     # 보안(암호화·인터셉터), 설정, 예외 처리
+```
 
-설계 판단과 트러블슈팅의 자세한 내용은 [docs/PORTFOLIO.md](docs/PORTFOLIO.md)에, 시간순 개발 기록은 [docs/DEVLOG.md](docs/DEVLOG.md)에 있다.
+<br>
 
----
+## ▶️ 실행 방법
 
-
-
-## 실행
-
-PostgreSQL이 필요하다. 접속 정보 기본값은 `damso/damso@127.0.0.1:5432/damso`이고 `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` 환경변수로 바꿀 수 있다.
+Docker, JDK 21, Node 20이 필요합니다.
 
 ```bash
-docker compose up -d           # 로컬 PostgreSQL
-./scripts/start.sh --rebuild   # 최초 실행 또는 코드 변경 시
-./scripts/start.sh             
-./scripts/stop.sh              # 종료
+docker compose up -d      # PostgreSQL 16
+./scripts/start.sh -r     # 백엔드(8080) + 프론트(5173) 빌드 후 실행
+cd backend && mvn test    # 테스트 (Testcontainers가 PostgreSQL을 자동으로 띄움)
 ```
 
-`start.sh`는 백엔드(8080)와 프론트(5173)를 함께 띄운 뒤 두 로그를 이어서 출력한다. `Ctrl+C`로 둘 다 정리된다.
-로그는 `logs/server.log`, `logs/client.log`에 쌓인다.
+| 화면 | 주소 | 계정 |
+|---|---|---|
+| 손님 앱 | http://localhost:5173 | `test` / `test1234` |
+| 관리자 | http://localhost:5173/admin | `admin` / `admin` |
+| API 문서 | http://localhost:8080/swagger-ui.html | — |
 
-| 용도 | 주소 |
-|---|---|
-| 관리자 (PC) | http://localhost:5173/admin |
-| 손님 (같은 매장 휴대폰) | http://&lt;매장 LAN IP&gt;:5173/ |
-| 셀렉팅 관리 | http://localhost:5173/dating |
-| API 문서 (dev 프로파일) | http://localhost:8080/swagger-ui.html |
+<br>
 
-손님 휴대폰은 PC와 같은 와이파이에 연결돼 있어야 한다. LAN IP는 관리자 페이지의 "손님 입장 QR" 화면에 자동으로 표시된다.
+## 📚 더 보기
 
-### 테스트
-
-```bash
-cd backend && mvn test
-```
-
-통합 테스트는 Testcontainers로 **실제 PostgreSQL 16 컨테이너**를 띄우고, 앱 전체를 임의 포트로 기동한 뒤 HTTP로 API를 호출한다.
-Flyway 마이그레이션 → Hibernate `validate` → 컨트롤러 → 서비스 → DB까지 운영과 같은 경로를 지난다. Docker만 있으면 된다.
-
-| 테스트 | 확인하는 것 |
-|---|---|
-| `ApplicationBootIntegrationTest` | 빈 DB에서 마이그레이션 적용, 엔티티·스키마 일치, 헬스체크, 초기 데이터 시드 |
-| `AdminAuthIntegrationTest` | 관리자 API 잠금(401), 로그인·로그아웃 후 토큰 폐기 |
-| `AppAuthIntegrationTest` | 가입·로그인, 중복 아이디(409), 입력 검증(400), **개인정보가 DB에 암호문으로 저장되는지** |
-| `EventFlowIntegrationTest` | 손님 등록(중복 등록 방지) → 1·2차 자리 배치 → 호감도 지목 → 메시지 |
-| `DatingFlowIntegrationTest` | 심사 전 이용 차단, 남의 프로필 사칭 차단, 좋아요 → 수락 후에만 이름 공개 |
-| `SeatAssignmentServiceTest` | 자리 배치 알고리즘의 성질 (단위 테스트, Mockito) |
-
-컨테이너와 스프링 컨텍스트는 모든 테스트 클래스가 공유해서 기동 비용은 한 번만 든다. 대신 테스트끼리 DB를 함께 쓰므로 각 테스트는 겹치지 않는 데이터를 직접 만든다.
-PR과 main 푸시마다 GitHub Actions(`.github/workflows/ci.yml`)가 같은 테스트와 프론트 빌드를 돌린다.
-
-### 데이터 위치
-
-- DB: PostgreSQL (`docker compose`의 `damso-db` 볼륨)
-- 개인정보 암호화 키: `./data/damso.key` (잃으면 실명과 전화번호를 복구할 수 없다. DB와 함께 백업할 것)
-- 업로드 사진: `./uploads/`
-- 완전 초기화: 서버 종료 후 `docker compose down -v && rm -f data/damso.key` 뒤 재시작
-
----
-
-## 이벤트 운영 흐름
-
-관리자가 단계 버튼을 눌러 순서대로 진행한다. 손님 화면은 현재 단계에 맞는 것만 보여준다.
-
-| 단계 | 상태값 | 관리자 화면 | 손님 화면 |
-|---|---|---|---|
-| 1 | `REGISTRATION` | 손님 등록과 수정 | 정보 입력 폼 |
-| 2 | `ROUND_1` | 1차 자리 배치 (입장 순서) | 본인 자리와 동석자 |
-| 3 | `ROUND_2` | 2차 자리 배치 (궁합 점수 최대화) | 본인 자리와 동석자 |
-| 4 | `ROUND_3` | 3차 자리 배치 (궁합 점수 최소화) | 본인 자리와 동석자 |
-| 5 | `PREFERENCE` | 호감도 지목 현황 | 1순위와 2순위 지목 |
-| 6 | `ROUND_4` | 4차 자리 배치 (상호 지목 우선) | 본인 자리와 동석자 |
-| 7 | `MESSAGE` | 메시지 모니터링 | 메시지 작성과 수신 |
-| 8 | `CLOSED` | 이벤트 종료 | 종료 안내 |
-
-### 자리 레이아웃 (ㄷ자 9석 × 슬롯 2)
-
-```
-[6][6][5][5][4][4][3]
-[7] ┌───────────────┐ [3]
-[7] │               │ [2]
-[8] │     주인장     │ [2]
-[8] │   (와인잔)    │ [1]
-[9] │               │ [1]
-[9] └───────────────┘
-```
-
-9개 자리에 슬롯이 2개씩이라 최대 18명(9남 9여)이다. 자리 1~6은 위가 여, 아래가 남이고 자리 7~9는 반대다.
-자동 배치 후에도 운영자가 셀을 클릭해 자유롭게 보정할 수 있다.
-
-### 자동 배치 방식
-
-남녀를 노드로, 궁합 점수를 간선 가중치로 둔 이분 그래프 최대 가중치 매칭이다.
-좌석이 9석이라 순열 완전탐색으로 정확한 최적해를 구한다.
-회차마다 점수 행렬만 바꾸고 탐색 코어는 공유한다.
-
-| 회차 | 전략 |
-|---|---|
-| 1차 | 손님이 입력한 자리 번호 그대로 |
-| 2차 | MBTI 궁합(20점) + 가치관 일치도(80점) 최대화 |
-| 3차 | 2차와 같은 점수의 부호만 뒤집어 최소화 — 가장 안 맞는 상대와 앉아 본다 |
-| 4차 | 쌍방 1순위 → 1순위와 2순위 교차, 쌍방 2순위 → 단방 지목 → 미지목 순 |
-
-이전 회차에 앉았던 조합 회피, 동점 타이브레이킹, 지목 티어 우선순위를 전부 가중치 하나로 표현해서 분기 없이 처리한다.
-테스트는 구현을 베끼지 않고 독립적인 브루트포스 오라클과 결과 점수를 비교한다.
-
----
-
-## 주요 기능
-
-### 관리자
-- 이벤트: 진행 중 이벤트 1개와 과거 목록, 새 이벤트 시작, 단계 진행과 되돌리기
-- 손님 등록: 닉네임, 본명, 연락처, 성별, MBTI, 가치관 설문, 자리 번호. 노쇼는 `LEFT` 처리
-- 자리 배치: 회차별 자동 배치와 수동 보정 (빈 셀 클릭으로 배정, 우클릭으로 해제, 라운드 초기화)
-- 호감도 현황: 쌍방 1순위와 2순위 포함 쌍방 분리 표시, 미제출자 명단 (3초 갱신)
-- 매칭 점수표: 16×16 MBTI 매트릭스 편집, 실시간 점수 계산
-- 메시지 모니터링, 가치관 설문 문항 관리 (라벨과 선택지 편집, 순서 변경)
-- 셀렉팅 회원 심사, 매장 대면 확인 배지, 좋아요와 약속 현황
-- 매장 캘린더(행사와 휴일), 주류 메뉴, 방명록, 게임 콘텐츠, 기능 on/off 스위치
-
-### 손님 (현장, 로그인 없음)
-- QR 스캔으로 입장, 등록 후 단계가 바뀌면 자동으로 화면 전환
-- 세션이 끊기면 본명 + 연락처로 재로그인
-- ㄷ자 배치도에서 본인 자리 강조, 다른 손님은 닉네임만 노출 (4초 갱신)
-- 이성 후보 중 1순위와 2순위 지목, 이성 1명에게 메시지와 연락처 전송 (1회 한정)
-
-### 회원 앱 (PWA)
-- 아이디 가입 또는 카카오/네이버 로그인, 계정 병합
-- 셀렉팅 프로필과 사진 등록 (브라우저에서 JPEG로 리사이즈 후 업로드)
-- 좋아요(72시간 자동 만료), 쌍방 매칭, 약속 잡기, 웹 푸시 알림
-- 매칭돼도 연락처는 공개하지 않는다. 만남은 매장에서 이뤄진다
-
----
-
-## 프로젝트 구조
-
-저장소는 `backend/`(Maven)와 `frontend/`(npm)로 나뉘지만 배포 단위는 jar 하나다.
-
-```
-.
-├── backend/
-│   ├── pom.xml
-│   └── src/main/
-│       ├── java/com/damso/match/
-│       │   ├── api/              # 프레젠테이션 — 누가 호출하나로 나눈다
-│       │   │   ├── admin/        #   /api/admin/**  AdminAuthInterceptor 가 통째로 잠근다
-│       │   │   ├── app/          #   /api/app/**    회원 로그인 토큰
-│       │   │   └── guest/        #   /api/guest/**  현장 손님 세션
-│       │   ├── domain/           # 비즈니스 — 누가 부르든 같은 코드
-│       │   │   ├── event/        #   행사, 손님, 좌석 배치, 메시지, 통계
-│       │   │   ├── dating/       #   셀렉팅 (프로필, 좋아요, 매칭, 궁합 점수)
-│       │   │   ├── member/       #   회원, 소셜 로그인, 세션
-│       │   │   ├── game/  venue/  notification/  setting/  admin/
-│       │   └── global/           # 횡단 관심사
-│       │       ├── security/     #   개인정보 암호화 (AES-256-GCM), 관리자 인터셉터
-│       │       └── config/  error/  common/
-│       └── resources/
-│           ├── application.yml          # 공통 (PostgreSQL, Flyway, HikariCP, OAuth 키)
-│           ├── application-dev.yml      # 로컬 개발 — Swagger, 느슨한 CORS, 테스트 계정
-│           └── db/migration/            # Flyway 스키마 (V1 = 기준 스키마)
-│
-├── frontend/src/
-│   ├── App.tsx               # 어느 경로를 어느 앱이 맡는지만
-│   ├── admin/                # 관리자 콘솔 (routes, api, layout, hooks, features)
-│   ├── user/                 # 손님 앱 PWA (routes, api, layout, features)
-│   └── shared/               # 두 앱이 함께 쓰는 타입과 유틸
-│
-├── scripts/                  # start.sh, stop.sh, seed_dummy.py
-├── docs/                     # PORTFOLIO, DEVLOG
-├── .github/workflows/ci.yml  # PR·main 마다 테스트와 프론트 빌드
-└── docker-compose.yml        # 로컬 PostgreSQL
-```
-
-### 코드를 찾는 법
-
-기능 하나는 두 곳에 있다. 화면이 부르는 엔드포인트가 `api/`에, 그 뒤의 로직이 `domain/`에 있다.
-`api/`의 폴더 경계가 곧 인증 경계라서, 컨트롤러가 어느 폴더에 있는지만 보면 잠겨 있는지 알 수 있다.
-DTO는 쓰는 쪽 `api/`에 두고, 두 대상이 함께 쓰는 것만 `domain/*/dto`에 남겼다.
-
-| 하고 싶은 일 | 여는 곳 |
-|---|---|
-| 관리자 손님 목록 화면 | `frontend/src/admin/features/event/CustomersPage.tsx` |
-| 그 화면이 부르는 API | `backend/.../api/admin/event/AdminCustomerController.java` |
-| 자리 배치 알고리즘 | `backend/.../domain/event/service/SeatAssignmentService.java` |
-| 궁합 점수 계산 | `backend/.../domain/dating/service/MatchScoreService.java` |
-| 개인정보 암호화 | `backend/.../global/security/DataCrypto.java` |
-| 현장 소개팅 손님 화면 | `frontend/src/user/features/matching/` |
-
----
-
-
-## 개인정보와 사용 안내
-
-매장 운영용 서비스다. 외부 결제 모듈은 없다.
-
-손님의 본명, 휴대폰번호, 연락처는 AES-256-GCM으로 암호화해 저장한다.
-DB 파일이나 덤프가 새어 나가도 값이 바로 읽히지 않는다 ([DataCrypto.java](backend/src/main/java/com/damso/match/global/security/DataCrypto.java)).
-다만 키를 잃으면 되돌릴 수 없으므로 키 파일은 DB와 함께 백업해야 한다.
-비밀번호는 BCrypt 해시로만 저장한다.
-
-암호화가 보관 기간을 대신하지는 않는다. 이벤트 종료 후 데이터 삭제 정책은 별도로 정해서 운영할 것.
+- [docs/PORTFOLIO.md](docs/PORTFOLIO.md): 설계 판단과 트러블슈팅 상세
+- [docs/DEVLOG.md](docs/DEVLOG.md): 시간순 개발 기록
