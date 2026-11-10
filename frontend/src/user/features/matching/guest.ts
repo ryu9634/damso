@@ -6,7 +6,6 @@ import type {
   Gender,
   GuestCandidate,
   GuestMessage,
-  GuestSeat,
   GuestSeatView,
   GuestSettings,
   Message,
@@ -55,11 +54,6 @@ export const guestApi = {
 
   login: (realName: string, phone: string) =>
     api.post<Customer>('/login', { realName, phone }).then((r) => r.data),
-
-  mySeat: (customerId: number, round: number) =>
-    api
-      .get<GuestSeat>('/me/seat', { params: { customerId, round } })
-      .then((r) => r.data),
 
   seats: (customerId: number, round: number) =>
     api

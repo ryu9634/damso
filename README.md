@@ -4,7 +4,7 @@
 관리자는 PC에서 단계를 진행하고, 손님은 휴대폰으로 자기 자리와 호감도 지목, 메시지 전송을 한다.
 이벤트 날에만 쓰는 도구로 시작했지만, 지금은 상시 소개팅(셀렉팅)과 게임방, 매장 캘린더까지 품은 매장 앱이 됐다.
 
-기획, 백엔드, 프론트, DB, 인프라, 배포까지 전 영역을 혼자 만들고 운영한다. (2026.06 ~ 운영 중)
+기획, 백엔드, 프론트, DB까지 전 영역을 혼자 만들었다. (2026.06 ~ 현재 운영 중지)
 
 | 영역 | 하는 일 |
 |---|---|
@@ -30,14 +30,13 @@
 | 기술 | 버전 | 선택 이유 |
 |---|---|---|
 | Java | 21 | 가장 익숙한 언어이고, record와 switch 패턴 매칭 덕분에 DTO와 상태 분기 코드가 짧아진다. LTS 버전이라 운영 서버에 올려 두고 오래 쓸 수 있다. |
-| Spring Boot | 3.3.5 | 웹, JPA, 검증, 스케줄링을 스타터 하나씩으로 붙일 수 있어 1인 개발에서 설정에 쓰는 시간이 가장 적다. 프로파일(dev/local/prod)로 환경별 설정을 깔끔하게 나눌 수 있는 점도 컸다. |
+| Spring Boot | 3.3.5 | 웹, JPA, 검증, 스케줄링을 스타터 하나씩으로 붙일 수 있어 1인 개발에서 설정에 쓰는 시간이 가장 적다. 프로파일(dev)로 개발 편의 설정만 따로 분리할 수 있는 점도 컸다. |
 | Spring Data JPA (Hibernate) | Boot 관리 | 엔티티가 30개 안팎이고 조회 패턴이 단순해서 JPA의 생산성이 그대로 이득이 된다. 개인정보 컬럼 암호화를 `AttributeConverter` 하나로 끼워 넣을 수 있었던 것도 JPA를 쓴 덕분이다. 서비스 코드는 평문만 다룬다. |
-| Flyway | Boot 관리 | 개발 DB와 운영 DB가 다르다 보니 `ddl-auto`에 맡기면 어느 쪽에서 무엇이 바뀌었는지 추적이 안 됐다. 스키마는 `V*__*.sql`로 버전 관리하고 Hibernate는 `validate`만 하게 해서, 엔티티와 테이블이 어긋나면 기동 자체가 실패하도록 했다. |
-| H2 (파일 모드) | runtime | 매장 노트북이나 집 PC에서 별도 DB 서버 없이 돌려야 했다. 파일 하나가 DB라서 백업이 파일 복사이고, 프로젝트 폴더를 통째로 옮기면 데이터가 따라간다. `MODE=PostgreSQL`로 켜서 운영 DB와 SQL 방언 차이를 줄였다. |
-| PostgreSQL | runtime | AWS 운영 환경용. H2는 한 프로세스가 독점하는 구조라 서버 운영에는 맞지 않고, 읽기 전용 트랜잭션 강제 같은 엄격함이 운영에서는 오히려 버그를 일찍 드러내 준다. H2 ↔ PostgreSQL 양방향 이관 스크립트를 `deploy/`에 같이 둔다. |
+| Flyway | Boot 관리 | `ddl-auto`에 맡기면 스키마가 언제 무엇이 바뀌었는지 추적이 안 된다. 스키마는 `V*__*.sql`로 버전 관리하고 Hibernate는 `validate`만 하게 해서, 엔티티와 테이블이 어긋나면 기동 자체가 실패하도록 했다. |
+| PostgreSQL | runtime | 유일한 DB. 로컬은 `docker-compose.yml`로 띄운다. 읽기 전용 트랜잭션 강제 같은 엄격함이 버그를 일찍 드러내 준다. |
 | Spring Security Crypto | 단독 사용 | BCrypt 해싱만 필요했다. 시큐리티 필터체인 전체를 올리면 관리자, 회원, 현장 손님이라는 세 가지 인증 방식을 필터 설정으로 표현해야 하는데, 이 프로젝트에서는 URL 경계(`api/admin`, `api/app`, `api/guest`)가 곧 인증 경계라서 인터셉터 하나와 토큰 조회가 더 읽기 쉬웠다. |
 | web-push (VAPID) | 5.1.1 | 셀렉팅에서 좋아요나 약속 알림을 앱이 닫혀 있어도 보내야 했다. 푸시 페이로드 암호화 규격(RFC 8291)을 직접 구현하지 않으려고 라이브러리를 썼고, 발송은 Java 기본 `HttpClient`로 하기 때문에 라이브러리가 끌고 오는 HTTP 클라이언트들은 전부 제외했다. |
-| springdoc-openapi | 2.6.0 | 엔드포인트가 160개가 넘어서 프론트 작업 중 "이 API 응답 모양이 뭐였지"를 매번 코드로 확인하기 어려웠다. dev 프로파일에서만 켜지고 운영은 `DAMSO_SWAGGER=true`일 때만 열린다. |
+| springdoc-openapi | 2.6.0 | 엔드포인트가 160개가 넘어서 프론트 작업 중 "이 API 응답 모양이 뭐였지"를 매번 코드로 확인하기 어려웠다. dev 프로파일에서만 켜지고 그 밖에는 `DAMSO_SWAGGER=true`일 때만 열린다. |
 | Lombok | 1.18.38 | 엔티티와 DTO의 보일러플레이트를 줄인다. 생성자 주입은 `@RequiredArgsConstructor`로 통일했다. |
 | Maven | — | Gradle보다 선택한 이유는 하나다. `maven-resources-plugin`으로 프론트 빌드 산출물을 jar 안 `static/`에 넣는 설정이 XML 몇 줄로 끝나고, 결과가 예측 가능하다. |
 
@@ -54,16 +53,12 @@
 | qrcode.react | 4.2 | 관리자 화면에 매장 LAN IP가 담긴 "손님 입장 QR"을 띄운다. 손님은 URL을 치지 않고 스캔만 하면 된다. |
 | 서비스워커 (PWA) | — | 웹 푸시 수신 전용이다. 오프라인 캐시는 일부러 하지 않았다. 이벤트 진행 중 화면이 옛 상태로 캐시되면 손님이 엉뚱한 자리에 앉는다. |
 
-### 인프라와 배포
+### 구조
 
 | 기술 | 선택 이유 |
 |---|---|
-| 단일 jar 배포 | Maven이 `frontend/dist/`를 jar 안 `static/`으로 복사한다. 파일 하나가 프론트와 API를 같은 오리진에서 서빙하므로 운영에서는 CORS 설정이 필요 없고, 집 PC에는 JDK만 있으면 된다. CI와 `build.sh`는 jar 안에 `index.html`이 실제로 들어갔는지 검사한다. 빠지면 배포 후 흰 화면으로 알게 되는 대신 빌드에서 멈춘다. |
-| GitHub Actions | main에 push하면 프론트 빌드 → 테스트 → jar 빌드 → 내용물 검증 → 릴리스 게시 순으로 돈다. `concurrency`를 걸어 배포가 겹치지 않게 했다. 겹치면 릴리스 심볼릭 링크가 꼬인다. |
-| AWS EC2 + S3 + SSM + OIDC | 처음에는 VPS에 SSH로 배포했지만 서버에 22번 포트가 열려 있는 게 계속 걸렸다. SSM은 서버가 밖으로 거는 연결만 쓰므로 인바운드를 전부 닫을 수 있고, GitHub Actions는 OIDC로 로그인하므로 장기 액세스 키를 시크릿에 두지 않는다. |
-| nginx + systemd | nginx가 TLS와 리버스 프록시를 맡고, systemd가 프로세스를 관리한다. 릴리스는 디렉터리를 쌓고 `current` 심볼릭 링크만 바꾸는 방식이라 헬스체크 실패 시 롤백이 링크 되돌리기 한 번이다. |
-| 집 PC + Cloudflare Tunnel | 클라우드 비용 없이 운영하는 선택지. 포트포워딩 없이 cloudflared가 밖으로 터널을 열고, 앱은 루프백에만 바인딩한다. `local` 프로파일은 prod의 보안 설정은 그대로 두고 DB만 H2로 바꾼 것이다. |
-| 4초 폴링 (WebSocket 미사용) | 동시 접속 18명 규모에서 WebSocket의 연결 유지, 재연결, nginx 업그레이드 설정을 감당할 이유가 없었다. 손님 화면은 4초, 관리자 모니터링 화면은 3~5초마다 다시 받는다. |
+| 단일 jar | Maven이 `frontend/dist/`가 있으면 jar 안 `static/`으로 복사한다. 파일 하나가 프론트와 API를 같은 오리진에서 서빙하므로 CORS 설정이 필요 없다. |
+| 4초 폴링 (WebSocket 미사용) | 동시 접속 18명 규모에서 WebSocket의 연결 유지, 재연결 설정을 감당할 이유가 없었다. 손님 화면은 4초, 관리자 모니터링 화면은 3~5초마다 다시 받는다. |
 
 ### 다른 선택지를 두고 고민한 것
 
@@ -80,7 +75,10 @@
 
 ## 실행
 
+PostgreSQL이 필요하다. 접속 정보 기본값은 `damso/damso@127.0.0.1:5432/damso`이고 `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` 환경변수로 바꿀 수 있다.
+
 ```bash
+docker compose up -d           # 로컬 PostgreSQL
 ./scripts/start.sh --rebuild   # 최초 실행 또는 코드 변경 시
 ./scripts/start.sh             
 ./scripts/stop.sh              # 종료
@@ -100,10 +98,10 @@
 
 ### 데이터 위치
 
-- H2 파일 DB: `./data/damso.mv.db`
+- DB: PostgreSQL (`docker compose`의 `damso-db` 볼륨)
 - 개인정보 암호화 키: `./data/damso.key` (잃으면 실명과 전화번호를 복구할 수 없다. DB와 함께 백업할 것)
 - 업로드 사진: `./uploads/`
-- 완전 초기화: 서버 종료 후 `rm data/damso.*` 뒤 재시작
+- 완전 초기화: 서버 종료 후 `docker compose down -v && rm -f data/damso.key` 뒤 재시작
 
 ---
 
@@ -202,13 +200,10 @@
 │       │   │   ├── game/  venue/  notification/  setting/  admin/
 │       │   └── global/           # 횡단 관심사
 │       │       ├── security/     #   개인정보 암호화 (AES-256-GCM), 관리자 인터셉터
-│       │       ├── schema/       #   Flyway 이전 DB 를 위한 스키마 보정
 │       │       └── config/  error/  common/
 │       └── resources/
-│           ├── application.yml          # 공통 (Flyway, HikariCP, OAuth 키)
-│           ├── application-dev.yml      # 로컬 개발 — H2 콘솔, Swagger, 느슨한 CORS
-│           ├── application-local.yml    # 집 PC 운영 — H2 파일 DB + Cloudflare Tunnel
-│           ├── application-prod.yml     # AWS 운영 — PostgreSQL
+│           ├── application.yml          # 공통 (PostgreSQL, Flyway, HikariCP, OAuth 키)
+│           ├── application-dev.yml      # 로컬 개발 — Swagger, 느슨한 CORS, 테스트 계정
 │           └── db/migration/            # Flyway 스키마 (V1 = 기준 스키마)
 │
 ├── frontend/src/
@@ -217,10 +212,9 @@
 │   ├── user/                 # 손님 앱 PWA (routes, api, layout, features)
 │   └── shared/               # 두 앱이 함께 쓰는 타입과 유틸
 │
-├── deploy/                   # AWS 프로비저닝, 배포, 백업, H2 ↔ PostgreSQL 이관, 윈도우 운영 스크립트
-├── scripts/                  # start.sh, stop.sh, build.sh, seed_dummy.py
-├── docs/                     # DEPLOY, LOCAL_SERVER, PORTFOLIO, DEVLOG
-└── .github/workflows/        # CI/CD
+├── scripts/                  # start.sh, stop.sh, seed_dummy.py
+├── docs/                     # PORTFOLIO, DEVLOG
+└── docker-compose.yml        # 로컬 PostgreSQL
 ```
 
 ### 코드를 찾는 법

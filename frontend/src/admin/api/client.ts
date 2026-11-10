@@ -12,8 +12,6 @@ import type {
   Dashboard,
   DatingAdminProfile,
   DatingLikeRow,
-  DatingMatch,
-  DatingMatchStage,
   DatingPairNote,
   DatingQuestion,
   DatingQuestionType,
@@ -95,9 +93,6 @@ export const adminAuthApi = {
 export const eventApi = {
   list: () => api.get<Event[]>('/admin/events').then((r) => r.data),
   current: () => api.get<Event>('/admin/events/current').then((r) => r.data),
-  get: (id: number) => api.get<Event>(`/admin/events/${id}`).then((r) => r.data),
-  create: (name: string) =>
-    api.post<Event>('/admin/events', { name }).then((r) => r.data),
   startNew: (name?: string) =>
     api.post<Event>('/admin/events/start-new', { name }).then((r) => r.data),
   clear: (id: number) =>
@@ -276,18 +271,6 @@ export const datingAdminApi = {
     api.put(`/admin/dating/pairs/${aId}/${bId}/note`, body).then((r) => r.data),
 };
 
-export const datingMatchApi = {
-  list: () => api.get<DatingMatch[]>('/admin/dating/matches').then((r) => r.data),
-  create: (profileAId: number, profileBId: number) =>
-    api.post('/admin/dating/matches', { profileAId, profileBId }).then((r) => r.data),
-  setStage: (id: number, stage: DatingMatchStage) =>
-    api.patch(`/admin/dating/matches/${id}/stage`, { stage }).then((r) => r.data),
-  setMemo: (id: number, memo: string) =>
-    api.patch(`/admin/dating/matches/${id}/memo`, { memo }).then((r) => r.data),
-  delete: (id: number) =>
-    api.delete(`/admin/dating/matches/${id}`).then((r) => r.data),
-};
-
 export interface DatingQuestionRequest {
   label: string;
   type: DatingQuestionType;
@@ -325,8 +308,6 @@ export const questionApi = {
   move: (id: number, direction: 'up' | 'down') =>
     api.post<ValueQuestion[]>(`/admin/questions/${id}/move`, null, { params: { direction } })
       .then((r) => r.data),
-  resetDefault: () =>
-    api.post<ValueQuestion[]>('/admin/questions/reset-default').then((r) => r.data),
 };
 
 /** 관리자가 고칠 수 있는 회원 정보 (손님 마이페이지와 같은 항목). */
@@ -456,5 +437,3 @@ export const adminGameApi = {
   closeRoom: (code: string) =>
     api.post(`/admin/games/rooms/${code}/close`).then((r) => r.data),
 };
-
-export default api;

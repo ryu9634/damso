@@ -198,8 +198,7 @@ JPA `AttributeConverter`로 넣어서 엔티티 필드에 애노테이션만 붙
 
 ## 5. 배포 — 서버에 22번 포트를 열지 않는다
 
-📄 [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml) ·
-[`deploy.sh`](../deploy/deploy.sh) · [`provision.sh`](../deploy/provision.sh)
+> 운영 중지와 함께 배포 스크립트·워크플로는 저장소에서 제거했다. 아래는 운영 당시의 기록이다.
 
 처음엔 GitHub Actions에서 SSH로 접속하는 흔한 방식이었다. 이걸 걷어냈다.
 
@@ -246,7 +245,7 @@ git push main
 **웹 푸시** 📄 [`WebPushService.java`](../backend/src/main/java/com/damso/match/domain/notification/service/WebPushService.java)
 - VAPID 서버 키를 첫 실행 때 생성해 설정에 보관, 발송 실패한 죽은 구독은 자동 삭제
 
-**스키마 관리** 📄 [`SchemaOps.java`](../backend/src/main/java/com/damso/match/global/schema/SchemaOps.java)
+**스키마 관리** (운영 당시 — 현재는 PostgreSQL + Flyway 단일 구성)
 - 개발은 H2, 운영은 PostgreSQL이라 DDL 방언이 다르다(`SET NULL` vs `DROP NOT NULL`).
   둘 다 시도하고 **양쪽 모두 실패했을 때만** 진짜 실패로 본다
 - enum 값이 늘면 기존 CHECK 제약에 걸리므로 부팅 시 제약을 정리하는 마이그레이션을 함께 넣는다
@@ -340,4 +339,3 @@ S3 전송 진행률 로그(48MB)가 실제 오류를 덮고 있었다(`--no-prog
 
 - [README.md](../README.md) — 실행 방법, 운영 흐름
 - [DEVLOG.md](DEVLOG.md) — 개발 기록 (시간순)
-- [DEPLOY.md](DEPLOY.md) — 서버 구성·배포·백업 운영 가이드

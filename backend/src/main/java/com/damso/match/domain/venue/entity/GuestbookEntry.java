@@ -48,10 +48,4 @@ public class GuestbookEntry {
     public void prePersist() {
         if (createdAt == null) createdAt = LocalDateTime.now();
         if (hidden == null) hidden = Boolean.FALSE;
-    }
-
-    @Transient
-    public boolean isVisible() {
-        return deletedAt == null && !Boolean.TRUE.equals(hidden);
-    }
-}
+    }}

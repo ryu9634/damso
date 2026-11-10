@@ -27,7 +27,7 @@ public class DatingAnswer {
     @Column(nullable = false)
     private Long questionId;
 
-    /** 'value' 는 H2 예약어라 컬럼명을 분리한다. */
+    /** 'value' 는 SQL 예약어라 컬럼명을 분리한다. */
     @Column(name = "answer_value", length = 500)
     private String value;
 }

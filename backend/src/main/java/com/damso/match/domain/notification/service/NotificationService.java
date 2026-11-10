@@ -95,17 +95,6 @@ public class NotificationService {
     }
 
     @Transactional
-    public void markRead(AppUser user, Long id) {
-        AppNotification n = repo.findById(id)
-                .filter(x -> x.getUserId().equals(user.getId()))
-                .orElseThrow(() -> new IllegalArgumentException("알림을 찾을 수 없어요."));
-        if (n.getReadAt() == null) {
-            n.setReadAt(LocalDateTime.now());
-            repo.save(n);
-        }
-    }
-
-    @Transactional
     public void markAllRead(AppUser user) {
         LocalDateTime now = LocalDateTime.now();
         for (AppNotification n : repo.findByUserIdOrderByCreatedAtDesc(user.getId())) {
@@ -113,12 +102,4 @@ public class NotificationService {
             n.setReadAt(now);
             repo.save(n);
         }
-    }
-
-    /** 탈퇴 정리용. 알림함과 등록된 기기를 함께 지운다. */
-    @Transactional
-    public void deleteAllOf(Long userId) {
-        repo.deleteByUserId(userId);
-        webPush.unsubscribe(userId, null);
-    }
-}
+    }}

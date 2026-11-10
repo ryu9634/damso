@@ -1,0 +1,17 @@
+# 로컬 개발용 PostgreSQL.
+#   docker compose up -d
+# 접속 정보는 application.yml 의 기본값(damso/damso@127.0.0.1:5432/damso)과 맞춰 두었다.
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: damso
+      POSTGRES_USER: damso
+      POSTGRES_PASSWORD: damso
+    ports:
+      - "5432:5432"
+    volumes:
+      - damso-db:/var/lib/postgresql/data
+
+volumes:
+  damso-db:
